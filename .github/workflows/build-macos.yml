@@ -1,0 +1,39 @@
+name: Build macOS App
+
+# Run this manually from the Actions tab whenever you want a fresh macOS
+# build (e.g. after pulling changes). It compiles on a real, temporary Mac
+# that GitHub provides for free — you don't need to own one.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - name: Check out the project
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Set up Rust (both Mac chip architectures)
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+
+      - name: Install frontend dependencies
+        run: npm install
+
+      - name: Build a universal macOS app (Intel + Apple Silicon)
+        run: npm run tauri build -- --target universal-apple-darwin
+
+      - name: Upload the .dmg as a downloadable artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Coursework-macOS-installer
+          path: src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg
+          if-no-files-found: error
