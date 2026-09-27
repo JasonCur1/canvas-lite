@@ -80,9 +80,26 @@ doesn't touch a browser at all.
 
 Both views (Checklist and Calendar) read from the same data — the checklist
 groups by due date (Overdue / Today / Tomorrow / This week / Later / no due
-date), and the calendar shows a normal month grid with a click-through day
-panel. Double-clicking a day in the calendar adds a new assignment due that
+date). The calendar has a **Month** view (a normal month grid with a
+click-through day panel) and a **Week** view (all 7 days shown in full, no
+truncation). Double-clicking a day in either adds a new assignment due that
 day.
+
+## Importing from D2L / Brightspace
+
+The sidebar has an **Import from D2L** button. It expects the **.ics**
+calendar file D2L/Brightspace produces from **Calendar → Subscribe/Export**.
+After picking the file, you get a review screen — every parsed assignment,
+with a dropdown to match it to an existing class (or create a new one) and
+an editable due date — before anything is written. Nothing is imported until
+you click "Import." Re-importing the same file later won't create
+duplicates: it skips anything with the same title, due date, and class.
+
+This only handles the .ics export path, since that's D2L's standard,
+portable calendar format — if your institution's D2L is configured
+differently (or you're exporting something other than the calendar), the
+file picker will just report it found no events, and you're welcome to send
+me a sample file to adjust the parser.
 
 Everything lives in one SQLite file, so backing up your data is just copying
 that file. To find it: it's wherever Tauri's app-local-data directory is for
@@ -102,6 +119,35 @@ src-tauri/           Rust shell
   tauri.conf.json    Window size, app identifier, bundle icon config
   capabilities/      Permission grants for the SQLite plugin
 ```
+
+## Sending this to someone on a Mac (without owning a Mac yourself)
+
+You can't cross-compile a macOS app from Windows — Apple's build tools only
+run on macOS. But you don't need to buy a Mac either: this project includes
+a GitHub Actions workflow (`.github/workflows/build-macos.yml`) that builds
+the macOS app on a free, temporary Mac that GitHub provides.
+
+1. Push this project to a GitHub repository.
+2. Open the repo's **Actions** tab, select **"Build macOS App"**, and click
+   **Run workflow**. (It only runs when you trigger it manually — pushing
+   commits won't kick it off, so you won't burn build minutes on every
+   commit.)
+3. Once it finishes (a few minutes), open the workflow run and download the
+   **Coursework-macOS-installer** artifact — it's a `.dmg`.
+4. Send that `.dmg` to the Mac user however you'd send any file (AirDrop,
+   Google Drive, email). They open it and drag the app into Applications.
+
+**One caveat:** since this isn't signed with a paid Apple Developer account,
+Gatekeeper will show a warning the first time it's opened. The fix is a
+one-time, non-technical step: **right-click the app → Open → Open** (instead
+of double-clicking). After that first launch, it opens normally from then on.
+
+## Building it yourself on your own Mac (later)
+
+If you eventually have Mac access directly, you don't need any of the above
+— just run `npm install && npm run tauri build` from the project folder like
+you would on Windows, and the `.dmg`/`.app` show up under
+`src-tauri/target/release/bundle/`.
 
 ## Extending it later
 

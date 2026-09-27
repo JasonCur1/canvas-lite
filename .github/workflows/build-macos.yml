@@ -1,12 +1,11 @@
 name: Build macOS App
 
-# Run this manually from the Actions tab whenever you want a fresh macOS
-# build (e.g. after pulling changes). It compiles on a real, temporary Mac
-# that GitHub provides for free — you don't need to own one.
+# Run this manually from the Actions tab (Run workflow button) whenever you
+# want a fresh macOS build. It compiles on a real, temporary Mac that GitHub
+# provides for free — you don't need to own one. It will NOT run automatically
+# on push, so ordinary commits don't consume build minutes.
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
 
 jobs:
   build-macos:

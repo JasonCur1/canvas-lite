@@ -9,6 +9,8 @@ export default defineConfig({
     port: 1420,
     strictPort: true,
     watch: {
+      // Rust is actively writing/locking files under src-tauri/target while
+      // compiling; Vite has no reason to watch that folder anyway.
       ignored: ["**/src-tauri/**"],
     },
   },

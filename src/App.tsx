@@ -5,6 +5,7 @@ import CalendarView from "./components/CalendarView";
 import ChecklistView from "./components/ChecklistView";
 import ClassModal from "./components/ClassModal";
 import AssignmentModal from "./components/AssignmentModal";
+import ImportModal from "./components/ImportModal";
 import type { AssignmentRow, ClassRow } from "./types";
 
 type View = "calendar" | "checklist";
@@ -25,6 +26,7 @@ export default function App() {
     existing: AssignmentRow | null;
     defaultDueDate?: string;
   }>({ open: false, existing: null });
+  const [importOpen, setImportOpen] = useState(false);
 
   async function refresh() {
     const [c, a] = await Promise.all([db.listClasses(), db.listAssignments()]);
@@ -96,6 +98,7 @@ export default function App() {
         onSelectClass={setSelectedClassId}
         onAddClass={() => setClassModal({ open: true, existing: null })}
         onEditClass={(c) => setClassModal({ open: true, existing: c })}
+        onImport={() => setImportOpen(true)}
       />
 
       <div className="main">
@@ -161,6 +164,15 @@ export default function App() {
           onClose={() => setAssignmentModal({ open: false, existing: null })}
           onSave={handleSaveAssignment}
           onDelete={assignmentModal.existing ? handleDeleteAssignment : undefined}
+        />
+      )}
+
+      {importOpen && (
+        <ImportModal
+          classes={classes}
+          assignments={assignments}
+          onClose={() => setImportOpen(false)}
+          onImported={refresh}
         />
       )}
     </div>

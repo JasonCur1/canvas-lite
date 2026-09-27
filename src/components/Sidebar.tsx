@@ -7,6 +7,7 @@ interface Props {
   onSelectClass: (id: number | "all") => void;
   onAddClass: () => void;
   onEditClass: (c: ClassRow) => void;
+  onImport: () => void;
 }
 
 export default function Sidebar({
@@ -16,6 +17,7 @@ export default function Sidebar({
   onSelectClass,
   onAddClass,
   onEditClass,
+  onImport,
 }: Props) {
   const openCount = (classId: number) =>
     assignments.filter((a) => a.class_id === classId && a.status !== "done").length;
@@ -71,6 +73,10 @@ export default function Sidebar({
       </div>
 
       <div className="sidebar-spacer" />
+
+      <button className="add-class-btn" onClick={onImport}>
+        ⇩ Import from D2L
+      </button>
     </aside>
   );
 }

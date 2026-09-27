@@ -79,6 +79,35 @@ export function buildMonthGrid(year: number, month: number): MonthCell[] {
   return cells;
 }
 
+// Returns the 7 dates (Sun-Sat) of the week containing `d`.
+export function buildWeekGrid(d: Date): MonthCell[] {
+  const today = todayStr();
+  const start = new Date(d.getFullYear(), d.getMonth(), d.getDate() - d.getDay());
+  const cells: MonthCell[] = [];
+  for (let i = 0; i < 7; i++) {
+    const day = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
+    const dateStr = toDateStr(day);
+    cells.push({
+      date: day,
+      dateStr,
+      inCurrentMonth: true,
+      isToday: dateStr === today,
+    });
+  }
+  return cells;
+}
+
+export function formatWeekRange(week: MonthCell[]): string {
+  const start = week[0].date;
+  const end = week[6].date;
+  const sameMonth = start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear();
+  const startLabel = start.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  const endLabel = sameMonth
+    ? end.toLocaleDateString(undefined, { day: "numeric" })
+    : end.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  return `${startLabel} – ${endLabel}, ${end.getFullYear()}`;
+}
+
 export const MONTH_NAMES = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December",

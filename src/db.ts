@@ -21,12 +21,13 @@ export async function listClasses(): Promise<ClassRow[]> {
   return db.select<ClassRow[]>("SELECT * FROM classes ORDER BY name COLLATE NOCASE ASC");
 }
 
-export async function createClass(name: string, color: string, term: string | null): Promise<void> {
+export async function createClass(name: string, color: string, term: string | null): Promise<number> {
   const db = await getDb();
-  await db.execute(
+  const result = await db.execute(
     "INSERT INTO classes (name, color, term, created_at) VALUES ($1, $2, $3, $4)",
     [name, color, term, nowIso()]
   );
+  return result.lastInsertId as number;
 }
 
 export async function updateClass(
