@@ -4,7 +4,8 @@
 use tauri_plugin_sql::{Migration, MigrationKind};
 
 fn main() {
-    let migrations = vec![Migration {
+    let migrations = vec![
+        Migration {
         version: 1,
         description: "create classes and assignments tables",
         sql: "
@@ -32,9 +33,32 @@ fn main() {
             CREATE INDEX IF NOT EXISTS idx_assignments_due_date ON assignments(due_date);
         ",
         kind: MigrationKind::Up,
-    }];
+        },
+        Migration {
+            version: 2,
+            description: "calendar sync: external ids, settings, course mappings",
+            sql: "
+                ALTER TABLE assignments ADD COLUMN external_uid TEXT;
+                ALTER TABLE assignments ADD COLUMN missing_from_feed INTEGER NOT NULL DEFAULT 0;
+                CREATE UNIQUE INDEX IF NOT EXISTS idx_assignments_external_uid
+                    ON assignments(external_uid) WHERE external_uid IS NOT NULL;
+
+                CREATE TABLE IF NOT EXISTS settings (
+                    key TEXT PRIMARY KEY,
+                    value TEXT
+                );
+
+                CREATE TABLE IF NOT EXISTS course_mappings (
+                    hint TEXT PRIMARY KEY,
+                    class_id INTEGER REFERENCES classes(id) ON DELETE CASCADE
+                );
+            ",
+            kind: MigrationKind::Up,
+        },
+    ];
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_http::init())
         .plugin(
             tauri_plugin_sql::Builder::default()
                 .add_migrations("sqlite:tracker.db", migrations)

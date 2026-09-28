@@ -85,40 +85,30 @@ click-through day panel) and a **Week** view (all 7 days shown in full, no
 truncation). Double-clicking a day in either adds a new assignment due that
 day.
 
-## Importing from D2L / Brightspace
+## Syncing with D2L / Brightspace
 
-The sidebar has an **Import from D2L** button. It expects the **.ics**
-calendar file D2L/Brightspace produces from **Calendar → Subscribe/Export**.
-After picking the file, you get a review screen — every parsed assignment,
-with a dropdown to match it to an existing class (or create a new one) and
-an editable due date — before anything is written. Nothing is imported until
-you click "Import." Re-importing the same file later won't create
-duplicates: it skips anything with the same title, due date, and class.
+**Automatic sync (recommended).** In D2L, open *Calendar*, click *Subscribe*,
+and copy the link. In the app, click **D2L calendar sync** in the sidebar,
+paste the link, and hit *Connect & sync*.
 
-This only handles the .ics export path, since that's D2L's standard,
-portable calendar format — if your institution's D2L is configured
-differently (or you're exporting something other than the calendar), the
-file picker will just report it found no events, and you're welcome to send
-me a sample file to adjust the parser.
+- The first sync asks you to match each D2L course to one of your classes
+  (or create a new one, or ignore it). Those choices are remembered.
+- After that, the app syncs every time it opens, and any time you press
+  *Sync now*. New assignments appear; changed titles/due dates update.
+- Your own work is never overwritten: status, details, and progress notes
+  are left alone.
+- If something disappears from the feed, it's flagged "No longer in D2L
+  feed" in the checklist rather than deleted.
+- The link is like a password (anyone with it can read your calendar). It's
+  stored only in the app's local database on your computer.
 
-Everything lives in one SQLite file, so backing up your data is just copying
-that file. To find it: it's wherever Tauri's app-local-data directory is for
-your OS — on Windows that's typically
-`%APPDATA%\com.personal.coursework-tracker\`.
+**File import (fallback).** *Import .ics file* in the sidebar takes a
+downloaded calendar file instead, with a review screen before anything is
+written. Items imported this way are recognized by later syncs, so nothing
+gets duplicated if you switch to the link afterward.
 
-## Project layout
-
-```
-src/                 React frontend
-  components/        Sidebar, CalendarView, ChecklistView, modals
-  db.ts              All SQLite queries (the only file that talks to the DB)
-  dateUtils.ts        Date/bucket/calendar-grid helpers
-  types.ts           Shared TypeScript types + class color palette
-src-tauri/           Rust shell
-  src/main.rs        Registers the SQLite plugin + table migrations
-  tauri.conf.json    Window size, app identifier, bundle icon config
-  capabilities/      Permission grants for the SQLite plugin
-```
+If auto-matching of course names looks off for your school's feed, send me
+a sample (course names are enough) and I'll tune the parser.
 
 ## Sending this to someone on a Mac (without owning a Mac yourself)
 

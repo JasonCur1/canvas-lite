@@ -16,6 +16,8 @@ export interface AssignmentRow {
   status: Status;
   details: string | null;
   progress_notes: string | null;
+  external_uid: string | null; // id from a synced calendar feed, if any
+  missing_from_feed: number; // 1 if a synced item disappeared from the feed
   created_at: string;
   updated_at: string;
 }

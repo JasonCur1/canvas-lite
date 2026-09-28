@@ -1,6 +1,6 @@
 import { useState } from "react";
 import * as db from "../db";
-import { parseIcs, type ParsedIcsItem } from "../importIcs";
+import { findMatch, parseIcs, type ParsedIcsItem } from "../importIcs";
 import { CLASS_COLORS, type AssignmentRow, type ClassRow } from "../types";
 
 interface Props {
@@ -18,17 +18,6 @@ interface ReviewRow extends ParsedIcsItem {
   classChoice: ClassChoice;
   newClassName: string;
   dueDateEdit: string; // yyyy-mm-dd for the <input type="date">
-}
-
-function findMatch(hint: string | null, classes: ClassRow[]): number | null {
-  if (!hint) return null;
-  const norm = hint.trim().toLowerCase();
-  const exact = classes.find((c) => c.name.trim().toLowerCase() === norm);
-  if (exact) return exact.id;
-  const partial = classes.find(
-    (c) => c.name.toLowerCase().includes(norm) || norm.includes(c.name.toLowerCase())
-  );
-  return partial ? partial.id : null;
 }
 
 export default function ImportModal({ classes, assignments, onClose, onImported }: Props) {
@@ -114,7 +103,9 @@ export default function ImportModal({ classes, assignments, onClose, onImported 
 
       const dueDate = r.dueDateEdit || null;
       const alreadyExists = assignments.some(
-        (a) => a.class_id === classId && a.title === r.title && a.due_date === dueDate
+        (a) =>
+          (r.uid && a.external_uid === r.uid) ||
+          (a.class_id === classId && a.title === r.title && a.due_date === dueDate)
       );
       if (alreadyExists) continue;
 
@@ -125,6 +116,7 @@ export default function ImportModal({ classes, assignments, onClose, onImported 
         status: "not_started",
         details: null,
         progress_notes: null,
+        external_uid: r.uid,
       });
       assignmentsCreated += 1;
     }

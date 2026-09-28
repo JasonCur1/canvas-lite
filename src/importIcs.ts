@@ -1,3 +1,5 @@
+import type { ClassRow } from "./types";
+
 // A small, dependency-free parser for the subset of iCalendar (RFC 5545)
 // that D2L/Brightspace calendar exports actually use: VEVENT blocks with a
 // SUMMARY and a DTSTART (all-day or timestamped). Good enough for importing
@@ -7,6 +9,7 @@ export interface ParsedIcsItem {
   title: string;
   dueDate: string | null; // YYYY-MM-DD
   hint: string | null; // best-guess course/class name, if we could find one
+  uid: string | null; // stable event id from the feed, used for syncing
 }
 
 function unfoldLines(raw: string): string[] {
@@ -32,6 +35,16 @@ function unescapeText(s: string): string {
 }
 
 function extractDateDigits(value: string): string | null {
+  // UTC timestamps (e.g. 20261006T035900Z) must be converted to the local
+  // calendar day, or a late-night deadline lands on the wrong date.
+  const utc = value.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z$/);
+  if (utc) {
+    const d = new Date(Date.UTC(+utc[1], +utc[2] - 1, +utc[3], +utc[4], +utc[5], +utc[6]));
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  }
   const match = value.match(/(\d{8})/);
   if (!match) return null;
   const digits = match[1];
@@ -75,6 +88,7 @@ export function parseIcs(raw: string): ParsedIcsItem[] {
           title,
           dueDate: dtstart ? extractDateDigits(dtstart) : null,
           hint: summaryHint ?? (categories ? unescapeText(categories) : null),
+          uid: props.get("UID")?.trim() || null,
         });
       }
       continue;
@@ -90,4 +104,16 @@ export function parseIcs(raw: string): ParsedIcsItem[] {
   }
 
   return items;
+}
+
+// Finds an existing class whose name matches a course hint from a feed.
+export function findMatch(hint: string | null, classes: ClassRow[]): number | null {
+  if (!hint) return null;
+  const norm = hint.trim().toLowerCase();
+  const exact = classes.find((c) => c.name.trim().toLowerCase() === norm);
+  if (exact) return exact.id;
+  const partial = classes.find(
+    (c) => c.name.toLowerCase().includes(norm) || norm.includes(c.name.toLowerCase())
+  );
+  return partial ? partial.id : null;
 }

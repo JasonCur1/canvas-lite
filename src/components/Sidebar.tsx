@@ -8,6 +8,8 @@ interface Props {
   onAddClass: () => void;
   onEditClass: (c: ClassRow) => void;
   onImport: () => void;
+  onOpenSync: () => void;
+  syncStatus: string;
 }
 
 export default function Sidebar({
@@ -18,6 +20,8 @@ export default function Sidebar({
   onAddClass,
   onEditClass,
   onImport,
+  onOpenSync,
+  syncStatus,
 }: Props) {
   const openCount = (classId: number) =>
     assignments.filter((a) => a.class_id === classId && a.status !== "done").length;
@@ -74,9 +78,17 @@ export default function Sidebar({
 
       <div className="sidebar-spacer" />
 
-      <button className="add-class-btn" onClick={onImport}>
-        ⇩ Import from D2L
-      </button>
+      <div>
+        <button className="add-class-btn" onClick={onOpenSync}>
+          ⟳ D2L calendar sync
+        </button>
+        {syncStatus && (
+          <div style={{ fontSize: 11.5, color: "var(--ink-soft)", padding: "6px 8px 0" }}>{syncStatus}</div>
+        )}
+        <button className="add-class-btn" onClick={onImport}>
+          ⇩ Import .ics file
+        </button>
+      </div>
     </aside>
   );
 }

@@ -117,6 +117,7 @@ function AssignmentRowItem({
         <div className={`assignment-meta ${overdue ? "overdue" : ""}`}>
           {formatFriendly(a.due_date)}
           {a.status === "in_progress" && !done ? " · In progress" : ""}
+          {a.missing_from_feed && !done ? " · No longer in D2L feed" : ""}
         </div>
         {a.progress_notes && <div className="assignment-note-preview">{a.progress_notes}</div>}
       </div>
