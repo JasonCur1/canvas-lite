@@ -51,20 +51,36 @@ function extractDateDigits(value: string): string | null {
   return `${digits.slice(0, 4)}-${digits.slice(4, 6)}-${digits.slice(6, 8)}`;
 }
 
-// Tries to split a summary like "PHYS 201: Problem Set 3" or
-// "[CHEM110] Lab Report" into a class-name hint and the remaining title.
+// Tries to split a summary like "[CHEM110] Lab Report" into a class-name
+// hint and the remaining title. Deliberately does NOT try to guess a course
+// code from patterns like "Word Number - Title" (e.g. "Task 10 - Due",
+// "Quiz 3 - Available") — that pattern is indistinguishable from a normal
+// assignment title, and guessing wrong invents a fake "course" per event.
 function splitHint(summary: string): { hint: string | null; title: string } {
   const bracket = summary.match(/^\s*\[([^\]]+)\]\s*(.+)$/);
   if (bracket) return { hint: bracket[1].trim(), title: bracket[2].trim() };
-
-  const colon = summary.match(/^\s*([A-Za-z]{2,10}[\s-]?\d{2,4}[A-Za-z]?)\s*[:\-–]\s*(.+)$/);
-  if (colon) return { hint: colon[1].trim(), title: colon[2].trim() };
-
   return { hint: null, title: summary };
+}
+
+// The VCALENDAR-level name (when present) is a reliable fallback for feeds
+// that are already scoped to a single course, so every event doesn't need
+// its own per-item hint.
+function extractCalendarName(lines: string[]): string | null {
+  for (const line of lines) {
+    const sep = line.indexOf(":");
+    if (sep === -1) continue;
+    const key = line.slice(0, sep).split(";")[0].toUpperCase();
+    if (key === "X-WR-CALNAME") {
+      const value = unescapeText(line.slice(sep + 1));
+      return value.length > 0 ? value : null;
+    }
+  }
+  return null;
 }
 
 export function parseIcs(raw: string): ParsedIcsItem[] {
   const lines = unfoldLines(raw);
+  const calendarName = extractCalendarName(lines);
   const items: ParsedIcsItem[] = [];
 
   let inEvent = false;
@@ -87,7 +103,7 @@ export function parseIcs(raw: string): ParsedIcsItem[] {
         items.push({
           title,
           dueDate: dtstart ? extractDateDigits(dtstart) : null,
-          hint: summaryHint ?? (categories ? unescapeText(categories) : null),
+          hint: summaryHint ?? (categories ? unescapeText(categories) : null) ?? calendarName,
           uid: props.get("UID")?.trim() || null,
         });
       }

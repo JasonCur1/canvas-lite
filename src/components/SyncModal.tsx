@@ -160,6 +160,10 @@ export default function SyncModal({ classes, onClose, onChanged, onOpenFileImpor
               {pending.keys.map((key) => {
                 const c = choices[key];
                 const count = pending.items.filter((i) => (i.hint ?? NO_COURSE_KEY) === key).length;
+                const examples = pending.items
+                  .filter((i) => (i.hint ?? NO_COURSE_KEY) === key)
+                  .slice(0, 2)
+                  .map((i) => i.title);
                 return (
                   <div key={key} style={{ padding: "9px 0", borderBottom: "1px solid var(--line)" }}>
                     <div style={{ fontSize: 13, fontWeight: 500, marginBottom: 5 }}>
@@ -169,6 +173,12 @@ export default function SyncModal({ classes, onClose, onChanged, onOpenFileImpor
                         · {count} item{count === 1 ? "" : "s"}
                       </span>
                     </div>
+                    {examples.length > 0 && (
+                      <div style={{ fontSize: 11.5, color: "var(--ink-soft)", marginBottom: 5 }}>
+                        e.g. {examples.join(" · ")}
+                        {count > examples.length ? "…" : ""}
+                      </div>
+                    )}
                     <div style={{ display: "flex", gap: 6 }}>
                       <select
                         style={{ flex: 1, fontSize: 12.5, padding: "5px 6px" }}
